@@ -14,7 +14,7 @@ export default function GenerateImage() {
   const [models, setModels] = useState([] as string[]);
   const [selectedModel, setSelectedModel] = useState(0);
   const [prompt, setPrompt] = useState("");
-  const [resultsLoadCounter, setResultsLoadCounter] = useState(0);
+  const [resultsLoadCounter, setResultsLoadCounter] = useState(-1);
   const [resultsLoaded, setResultsLoaded] = useState(true);
   const [results, setResults] = useState([] as ImgResult[]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -27,35 +27,39 @@ export default function GenerateImage() {
 
   async function generate(e: any) {
     e.preventDefault();
-    if (!resultsLoaded) return;
+    if (resultsLoadCounter > -1) return;
     let intvl;
     try {
       setErrorMessage("");
+      setResults([]);
       setResultsLoaded(false);
 
       let i = 0;
+      setResultsLoadCounter(0);
       intvl = setInterval(() => {
         i += 1;
         setResultsLoadCounter(i);
       }, 1000);
 
-      const res = await generateImage({
-        prompt,
-        model: models[selectedModel] as ImgModels,
-        amount: 4,
-      });
-
+      const res = await generateImage(
+        {
+          prompt,
+          model: models[selectedModel] as ImgModels,
+          amount: 4,
+        },
+        setResults,
+        setResultsLoaded
+      );
+      
       if (res.code != 200) {
-        setErrorMessage(res.data.message ?? '');
-      } else {
-        setResults(res.data.result as ImgResult[]);
+        setErrorMessage(res.data.message ?? "");
       }
     } catch (err) {
-      console.log(`Error: ${err}`);
+      setErrorMessage(`Error: ${err}`);
     } finally {
       setResultsLoaded(true);
       clearInterval(intvl);
-      setResultsLoadCounter(0);
+      setResultsLoadCounter(-1);
     }
   }
 
@@ -109,9 +113,9 @@ export default function GenerateImage() {
               placeholder="Write prompt..."
               onChange={(e) => setPrompt(e.target.value)}
             />
-            {!resultsLoaded ? (
+            {resultsLoadCounter > -1 ? (
               <button type="submit" disabled>
-                Generate
+                Loading
               </button>
             ) : (
               <button type="submit">Generate</button>

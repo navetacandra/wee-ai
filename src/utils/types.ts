@@ -32,6 +32,7 @@ const _imgModels = [
 export const imgModels = [..._imgModels] as string[];
 export type ImgModels = (typeof _imgModels)[number];
 export type ImgResult = {
+  prompt: string;
   model: ImgModels;
   img: string;
   censored: boolean;
