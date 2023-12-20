@@ -4,6 +4,7 @@ import Conversation from "./Conversation";
 export default function Chats(props: {
   messages: Message[];
   avatar: string;
+  waitDone: boolean;
   selectedModel: CompletionModel;
   regenerate?: (msgIndex: number) => Promise<void>;
 }) {
@@ -24,6 +25,7 @@ export default function Chats(props: {
       } else if (el.role == "assistant") {
         return (
           <Conversation
+            wait={props.waitDone && i == props.messages.length - 1}
             msgIndex={i}
             avatar={props.selectedModel.cover_img_url}
             avatarAlt={`${

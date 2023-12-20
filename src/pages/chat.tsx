@@ -21,6 +21,7 @@ export default function Chat() {
   const [avatar, setAvatar] = useState("");
   const [messages, setMessages] = useState([] as Message[]);
   const [loadMessages, setLoadMessages] = useState(false);
+  const [waitDone, setWaitDone] = useState(false);
 
   async function deepinfraInitialize() {
     if (deepinfraRef.current == null) {
@@ -58,59 +59,83 @@ export default function Chat() {
   }
 
   async function generateCompletion() {
+    if (waitDone || loadMessages) return;
     const prompt = promptsRef.current;
     const input = prompt?.value || "";
-
+    
     if (input.length < 1 || loadMessages || !modelLoaded) return;
-
+    
     const newMessage = { role: "user", content: input } as Message;
     const updatedMessages = [...messages, newMessage];
-
+    
     setMessages(updatedMessages);
     setLoadMessages(true);
     prompt!.value = "";
-
+    
     try {
       await deepinfraInitialize();
-      const res = await deepinfraRef.current?.completion({
-        messages: updatedMessages,
-        model: models[selectedModel].model_name,
-      });
-
-      if (res!.code != 200) {
+      const res = await deepinfraRef.current?.completionStream(
+        {
+          messages: updatedMessages,
+          model: models[selectedModel].model_name,
+        },
+        updatedMessages,
+        setMessages,
+        setLoadMessages,
+        setWaitDone
+        );
+        // const res = await deepinfraRef.current?.completion(
+          //   {
+            //     messages: updatedMessages,
+            //     model: models[selectedModel].model_name,
+            //   }
+            // );
+            
+            if (res!.code != 200) {
         throw new Error("Failed to get response.");
       }
-
-      setMessages([...updatedMessages, res?.data.result]);
+      
+      // setMessages([...updatedMessages, res?.data.result]);
     } catch (err) {
       alert(`Error: ${err?.toString()}`);
     } finally {
-      setLoadMessages(false);
+      // setLoadMessages(false);
       document
-        .querySelector(".chat-area")
-        ?.scrollTo(0, document.querySelector(".chat-area")!.scrollHeight);
+      .querySelector(".chat-area")
+      ?.scrollTo(0, document.querySelector(".chat-area")!.scrollHeight);
     }
   }
-
+  
   async function regenerateCompletion(msgIndex: number) {
+    if (waitDone || loadMessages) return;
     const updatedMessages = messages.slice(0, msgIndex);
     setMessages(updatedMessages);
     setLoadMessages(true);
     try {
       await deepinfraInitialize();
-      const res = await deepinfraRef.current?.completion({
-        messages: updatedMessages,
-        model: models[selectedModel].model_name,
-      });
+      const res = await deepinfraRef.current?.completionStream(
+        {
+          messages: updatedMessages,
+          model: models[selectedModel].model_name,
+        },
+        updatedMessages,
+        setMessages,
+        setLoadMessages,
+        setWaitDone
+      );
+      // const res = await deepinfraRef.current?.completion({
+      //   messages: updatedMessages,
+      //   model: models[selectedModel].model_name,
+      // });
 
       if (res!.code != 200) {
         throw new Error("Failed to get response.");
       }
-      setMessages([...updatedMessages, res?.data.result]);
+      // setMessages([...updatedMessages, res?.data.result]);
     } catch (err) {
       alert(`Error: ${err?.toString()}`);
     } finally {
-      setLoadMessages(false);
+      // setLoadMessages(false);
       document
         .querySelector(".chat-area")
         ?.scrollTo(0, document.querySelector(".chat-area")!.scrollHeight);
@@ -187,6 +212,7 @@ export default function Chat() {
           ) : null}
 
           <Chats
+            waitDone={waitDone}
             messages={messages}
             avatar={avatar}
             selectedModel={models[selectedModel]}

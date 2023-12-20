@@ -11,6 +11,7 @@ type ChatProps = {
   content: string;
   avatarAlt?: string;
   isBot?: boolean;
+  wait?: boolean;
   regenerate?: (msgIndex: number) => Promise<void>;
 };
 
@@ -53,7 +54,7 @@ export function LoadingConversation(props: { avatar: string; name: string }) {
 
 export default function Conversation(props: ChatProps) {
   return (
-    <div className="chat">
+    <div className={`chat${props.wait ? " wait" : ""}`}>
       <div className="profile">
         <div className="img-profile">
           {!props.avatar ? null : (
@@ -75,41 +76,68 @@ export default function Conversation(props: ChatProps) {
               code(props) {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { children, className, node, ...rest } = props;
-                const highlight = hljs.highlightAuto(children as string);
+                try {
+                  const highlight = hljs.highlightAuto(children as string);
 
-                return (
-                  <code
-                    data-language={highlight.language}
-                    {...rest}
-                    className={className}
-                    dangerouslySetInnerHTML={{ __html: highlight.value }}
-                  ></code>
-                );
+                  return (
+                    <code
+                      data-language={highlight.language}
+                      {...rest}
+                      className={className}
+                      dangerouslySetInnerHTML={{ __html: highlight.value }}
+                    ></code>
+                  );
+                } catch (error) {
+                  return <code>{children}</code>;
+                }
               },
               pre(props) {
-                const childClass: string =
-                  (props.children as any)?.props.className || "bash";
+                try {
+                  const childClass: string =
+                    (props.children as any)?.props.className || "bash";
 
-                return (
-                  <div className="code-embed">
-                    <div className="used-language">
-                      <span>{childClass.replace(/language-/gi, "")}</span>
-                      <div className="tooltip">
-                        <div
-                          className="copy-btn"
-                          onClick={() =>
-                            copyToClipboard(
-                              (props.children as any)?.props.children
-                            )
-                          }
-                        >
-                          <ClipboardIcon />
+                  return (
+                    <div className="code-embed">
+                      <div className="used-language">
+                        <span>{childClass.replace(/language-/gi, "")}</span>
+                        <div className="tooltip">
+                          <div
+                            className="copy-btn"
+                            onClick={() =>
+                              copyToClipboard(
+                                (props.children as any)?.props.children
+                              )
+                            }
+                          >
+                            <ClipboardIcon />
+                          </div>
                         </div>
                       </div>
+                      <pre>{props.children}</pre>
                     </div>
-                    <pre>{props.children}</pre>
-                  </div>
-                );
+                  );
+                } catch (error) {
+                  return (
+                    <div className="code-embed">
+                      <div className="used-language">
+                        <span>bash</span>
+                        <div className="tooltip">
+                          <div
+                            className="copy-btn"
+                            onClick={() =>
+                              copyToClipboard(
+                                (props.children as any)?.props.children
+                              )
+                            }
+                          >
+                            <ClipboardIcon />
+                          </div>
+                        </div>
+                      </div>
+                      <pre>{props.children}</pre>
+                    </div>
+                  );
+                }
               },
             }}
           />

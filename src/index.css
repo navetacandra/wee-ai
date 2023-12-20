@@ -1,6 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap");
 
-
 /* Global Style */
 ::-webkit-scrollbar {
   width: 0.25rem;
@@ -104,13 +103,13 @@ p.loading {
 }
 
 p.loading::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   right: 0;
   display: block;
-  width: .75rem;
-  height: .75rem;
+  width: 0.75rem;
+  height: 0.75rem;
   border-top: 0.15rem solid transparent;
   border-right: 0.15rem solid #f1f1f1;
   border-bottom: 0.15rem solid transparent;
@@ -130,20 +129,20 @@ p.loading::after {
 
 .devtool-alert h1 {
   font-weight: 600;
-  letter-spacing: .25rem;
+  letter-spacing: 0.25rem;
   margin-bottom: 1rem;
 }
 
 .devtool-alert p {
-  letter-spacing: .15rem;
+  letter-spacing: 0.15rem;
 }
 
 .devtool-alert a {
-  margin-top: .5rem;
+  margin-top: 0.5rem;
   color: #f1f1f1;
-  letter-spacing: .15rem;
+  letter-spacing: 0.15rem;
   text-decoration: none;
-  text-underline-offset: .15rem;
+  text-underline-offset: 0.15rem;
 }
 
 .devtool-alert a:hover {
@@ -167,6 +166,17 @@ p.loading::after {
   max-height: calc(90vh - 2.5rem);
   overflow-y: auto;
   scroll-behavior: smooth;
+}
+
+.wait .content > *:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  transform: translateY(.125rem);
+  margin: 0 0.25rem;
+  background-color: #f1f1f1;
+  border-radius: 50%;
 }
 
 .chat-model-selection {
@@ -196,7 +206,7 @@ p.loading::after {
   display: flex;
   align-items: center;
   flex-direction: row;
-  margin-bottom: .25rem;
+  margin-bottom: 0.25rem;
   padding: 0;
 }
 
@@ -216,7 +226,7 @@ p.loading::after {
 
 .chat .content {
   line-height: 1.5rem;
-  letter-spacing: .035rem;
+  letter-spacing: 0.035rem;
   margin-left: 3.85rem;
   max-width: 98%;
   height: auto;
@@ -572,7 +582,7 @@ p.loading::after {
   .generator-form .model-selection * {
     width: 100%;
   }
-  
+
   .img-container {
     width: 49%;
   }
@@ -589,19 +599,19 @@ p.loading::after {
   .generator-form {
     width: 98%;
   }
-  
+
   .generator-form .title {
     font-size: 2.1rem;
   }
-  
+
   .img-container {
     width: 99%;
   }
-  
+
   .img-tooltip {
     height: 2.75rem;
   }
-  
+
   .chat-area,
   .chat-form {
     width: 98%;
