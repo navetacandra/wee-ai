@@ -125,9 +125,16 @@ export default function Conversation(props: ChatProps) {
           <p
             dangerouslySetInnerHTML={{
               __html: props.content
-                .replace(/\n/g, "<br/>")
-                .replace(/ /g, "&nbsp;")
-                .replace(/\t/g, "&nbsp;".repeat(4)),
+                .replace(/&/g, "&#38;")
+                .replace(/</g, "&#60;")
+                .replace(/>/g, "&#62;")
+                .replace(/"/g, "&#34;")
+                .replace(/'/g, "&#39;")
+                .replace(/`/g, "&#96;")
+                .replace(/\//g, "&#47;")
+                .replace(/ /g, "&#160;")
+                .replace(/\t/g, "&#160;".repeat(4))
+                .replace(/\n/g, "<br/>"),
             }}
           ></p>
         )}
