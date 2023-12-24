@@ -3,6 +3,7 @@ import GenerateImage from "./pages/generate-image";
 import Chat from "./pages/chat";
 import { useEffect } from "react";
 import DevtoolAlert from "./pages/devtool-alert";
+import NotFoundAlert from "./pages/404";
 
 export default function App() {
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/chat" element={<Chat />} />
           <Route path="/image" element={<GenerateImage />} />
           <Route path="/devtool" element={<DevtoolAlert />} />
+          <Route path="*" element={<NotFoundAlert />} />
         </Routes>
       </BrowserRouter>
     </>

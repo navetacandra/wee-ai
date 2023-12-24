@@ -1,4 +1,4 @@
-.devtool-alert {
+.page-alert {
   width: 100%;
   height: 98vh;
   text-align: center;
@@ -7,17 +7,17 @@
   flex-direction: column;
 }
 
-.devtool-alert h1 {
+.page-alert h1 {
   font-weight: 600;
   letter-spacing: 0.25rem;
   margin-bottom: 1rem;
 }
 
-.devtool-alert p {
+.page-alert p {
   letter-spacing: 0.15rem;
 }
 
-.devtool-alert a {
+.page-alert a {
   margin-top: 0.5rem;
   color: #f1f1f1;
   letter-spacing: 0.15rem;
@@ -25,6 +25,6 @@
   text-underline-offset: 0.15rem;
 }
 
-.devtool-alert a:hover {
+.page-alert a:hover {
   text-decoration: underline;
 }
