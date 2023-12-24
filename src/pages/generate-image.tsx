@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { ImgModels, ImgResult, imgModels } from "../utils/types";
 import generateImage from "../utils/hf_img";
+import '../styles/image.css';
 
 type GeneratedImg = {
   censored: boolean;
@@ -10,6 +11,28 @@ type GeneratedImg = {
 } | null;
 
 export default function GenerateImage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // const dimension = [
+  //   {
+  //     name: 'square',
+  //     ratio: 1/1,
+  //     width: 1024,
+  //     height: 1024,
+  //   },
+  //   {
+  //     name: 'portrait',
+  //     ratio: 9/16,
+  //     width: 576,
+  //     height: 1024,
+  //   },
+  //   {
+  //     name: 'landscape',
+  //     ratio: 16/9,
+  //     windth: 1024,
+  //     height: 576,
+  //   },
+  // ];
+
   const [modelLoaded, setModelLoaded] = useState(false);
   const [models, setModels] = useState([] as string[]);
   const [selectedModel, setSelectedModel] = useState(0);

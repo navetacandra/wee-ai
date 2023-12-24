@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
+import '../styles/devtool.css';
 
 function DevtoolAlert() {
   const p = useSearchParams();

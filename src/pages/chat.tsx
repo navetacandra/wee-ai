@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useRef, useState } from "react";
 import Chats from "../components/Chats";
 import { LoadingConversation } from "../components/Conversation";
 import { ChevronDownIcon, SendIcon } from "../components/Icons";
 import Deepinfra from "../utils/deepinfra";
 import isMobile from "../utils/isMobile";
 import { CompletionModel, Message } from "../utils/types";
-import { useEffect, useRef, useState } from "react";
+import '../styles/chat.css';
 
 const avatars = ["/ava-1.jpg", "/ava-2.jpg", "/ava-3.jpg"];
 
@@ -24,7 +25,7 @@ export default function Chat() {
   const [waitDone, setWaitDone] = useState(false);
 
   async function deepinfraInitialize() {
-    if (deepinfraRef.current == null) {
+    if (!deepinfraRef.current) {
       deepinfraRef.current = new Deepinfra();
       await deepinfraRef.current.init();
     }
@@ -32,114 +33,92 @@ export default function Chat() {
 
   async function loadModel() {
     if (modelLoaded) return;
+
     try {
       await deepinfraInitialize();
       setModels(deepinfraRef.current!.models);
       setModelLoaded(true);
-    } catch (err) {
-      console.error(`Error loading models: ${err}`);
+    } catch (error) {
+      console.error(`Error loading models: ${error}`);
       alert("Error loading models");
-      setTimeout(() => loadModel(), 5000);
+      setTimeout(loadModel, 5000);
     }
   }
 
   function keydownHandler(el: any) {
-    if (el.which === 9) {
+    const isTabKey = el.which === 9;
+    const isEnterKey = el.which === 13;
+    const isModifierKey = el.ctrlKey || el.shiftKey;
+
+    if (isTabKey) {
       el.preventDefault();
     }
 
-    if (
-      !isMobile(window.navigator.userAgent) &&
-      !(el.ctrlKey || el.shiftKey) &&
-      el.which === 13
-    ) {
+    if (!isMobile(window.navigator.userAgent) && !isModifierKey && isEnterKey) {
       el.preventDefault();
       (document.querySelector(".send-btn") as HTMLButtonElement).click();
     }
   }
 
-  async function generateCompletion() {
-    if (waitDone || loadMessages) return;
-    const prompt = promptsRef.current;
-    const input = prompt?.value || "";
-    
-    if (input.length < 1 || loadMessages || !modelLoaded) return;
-    
-    const newMessage = { role: "user", content: input } as Message;
-    const updatedMessages = [...messages, newMessage];
-    
-    setMessages(updatedMessages);
-    setLoadMessages(true);
-    prompt!.value = "";
-    
+  async function generateCompletion(messages: Message[]) {
     try {
       await deepinfraInitialize();
       const res = await deepinfraRef.current?.completionStream(
         {
-          messages: updatedMessages,
+          messages,
           model: models[selectedModel].model_name,
         },
-        updatedMessages,
-        setMessages,
-        setLoadMessages,
-        setWaitDone
-        );
-        // const res = await deepinfraRef.current?.completion(
-          //   {
-            //     messages: updatedMessages,
-            //     model: models[selectedModel].model_name,
-            //   }
-            // );
-            
-            if (res!.code != 200) {
-        throw new Error("Failed to get response.");
-      }
-      
-      // setMessages([...updatedMessages, res?.data.result]);
-    } catch (err) {
-      alert(`Error: ${err?.toString()}`);
-    } finally {
-      // setLoadMessages(false);
-      document
-      .querySelector(".chat-area")
-      ?.scrollTo(0, document.querySelector(".chat-area")!.scrollHeight);
-    }
-  }
-  
-  async function regenerateCompletion(msgIndex: number) {
-    if (waitDone || loadMessages) return;
-    const updatedMessages = messages.slice(0, msgIndex);
-    setMessages(updatedMessages);
-    setLoadMessages(true);
-    try {
-      await deepinfraInitialize();
-      const res = await deepinfraRef.current?.completionStream(
-        {
-          messages: updatedMessages,
-          model: models[selectedModel].model_name,
-        },
-        updatedMessages,
+        messages,
         setMessages,
         setLoadMessages,
         setWaitDone
       );
-      // const res = await deepinfraRef.current?.completion({
-      //   messages: updatedMessages,
-      //   model: models[selectedModel].model_name,
-      // });
 
-      if (res!.code != 200) {
+      if (res!.code !== 200) {
         throw new Error("Failed to get response.");
       }
-      // setMessages([...updatedMessages, res?.data.result]);
     } catch (err) {
-      alert(`Error: ${err?.toString()}`);
+      setMessages([
+        ...messages,
+        {
+          role: "assistant",
+          content: err?.toString() ?? "Failed to get response",
+        },
+      ]);
     } finally {
-      // setLoadMessages(false);
       document
         .querySelector(".chat-area")
         ?.scrollTo(0, document.querySelector(".chat-area")!.scrollHeight);
     }
+  }
+
+  function generate() {
+    if (waitDone || loadMessages) return;
+    const prompt = promptsRef.current;
+    const input = prompt?.value || "";
+
+    if (input.length < 1 || loadMessages || !modelLoaded) return;
+
+    const newMessage = { role: "user", content: input } as Message;
+    const updatedMessages = [...messages, newMessage];
+
+    setMessages(updatedMessages);
+    setLoadMessages(true);
+    prompt!.value = "";
+
+    generateCompletion(updatedMessages);
+  }
+
+  function regenerate(msgIndex: number) {
+    if (waitDone || loadMessages) {
+      return;
+    }
+
+    const updatedMessages = messages.slice(0, msgIndex);
+    setMessages(updatedMessages);
+    setLoadMessages(true);
+
+    generateCompletion(updatedMessages);
   }
 
   useEffect(() => {
@@ -216,7 +195,7 @@ export default function Chat() {
             messages={messages}
             avatar={avatar}
             selectedModel={models[selectedModel]}
-            regenerate={regenerateCompletion}
+            regenerate={regenerate}
           />
           {loadMessages ? (
             <LoadingConversation
@@ -241,11 +220,7 @@ export default function Chat() {
               <SendIcon />
             </button>
           ) : (
-            <button
-              className="send-btn"
-              aria-label="send"
-              onClick={generateCompletion}
-            >
+            <button className="send-btn" aria-label="send" onClick={generate}>
               <SendIcon />
             </button>
           )}

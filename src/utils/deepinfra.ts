@@ -29,7 +29,29 @@ export default class Deepinfra {
   }
 
   async init() {
-    const res = await fetch("https://api.deepinfra.com/models/featured");
+    const res = await fetch("https://api.deepinfra.com/models/featured", {
+      headers: {
+        accept: "application/json",
+        "accept-language": "en-US,en;q=0.9,id;q=0.8",
+        "content-type": "application/json",
+        "cache-control": "no-cache",
+        pragma: "no-cache",
+        "sec-ch-ua":
+          '"Not_A Brand";v="8", "Chromium";v="120", "Microsoft Edge";v="120"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-site",
+        "x-deepinfra-source": "web-embed",
+        "x-forwarded-for": randomIp(),
+      },
+      referrer: "https://deepinfra.com/",
+      referrerPolicy: "strict-origin-when-cross-origin",
+      method: "GET",
+      mode: "cors",
+      credentials: "omit",
+    });
     const json = await res.json();
     this.models = json.filter(
       (f: CompletionModel) => f.type == "text-generation"

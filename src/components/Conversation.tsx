@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Markdown from "react-markdown";
-import hljs from "highlight.js";
-import "highlight.js/styles/atom-one-dark.css";
+import Prism from "prismjs";
+import "prismjs/themes/prism-dark.min.css";
 import { ClipboardIcon, RefreshIcon } from "./Icons";
+import { useEffect, useRef } from "react";
 
 type ChatProps = {
   msgIndex: number;
@@ -12,7 +13,7 @@ type ChatProps = {
   avatarAlt?: string;
   isBot?: boolean;
   wait?: boolean;
-  regenerate?: (msgIndex: number) => Promise<void>;
+  regenerate?: (msgIndex: number) => void;
 };
 
 function copyToClipboard(text: string) {
@@ -28,25 +29,34 @@ function copyToClipboard(text: string) {
   }
 }
 
+function CodeBlock(props: { value: string }) {
+  const { value } = props;
+  const blockRef = useRef<any>(null);
+
+  useEffect(() => {
+    Prism.highlightElement(blockRef.current as Element);
+  }, []);
+
+  return <code ref={blockRef}>{value}</code>;
+}
+
 export function LoadingConversation(props: { avatar: string; name: string }) {
+  const { avatar, name } = props;
+
   return (
     <div className="chat loading">
       <div className="profile">
-        <div className="img-profile">
-          {!props.avatar ? null : (
-            <img
-              src={props.avatar}
-              alt={`${props.name}'s Profile Picture`}
-              sizes="100%"
-            />
-          )}
-        </div>
-        <p className="name">{props.name}</p>
+        {avatar && (
+          <div className="img-profile">
+            <img src={avatar} alt={`${name}'s Profile Picture`} sizes="100%" />
+          </div>
+        )}
+        <p className="name">{name}</p>
       </div>
       <div className="content">
-        <span className="dot"></span>
-        <span className="dot"></span>
-        <span className="dot"></span>
+        {[...Array(3)].map((_, index) => (
+          <span key={index} className="dot"></span>
+        ))}
       </div>
     </div>
   );
@@ -73,71 +83,41 @@ export default function Conversation(props: ChatProps) {
           <Markdown
             children={props.content}
             components={{
-              code(props) {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { children, className, node, ...rest } = props;
-                try {
-                  const highlight = hljs.highlightAuto(children as string);
-
-                  return (
-                    <code
-                      data-language={highlight.language}
-                      {...rest}
-                      className={className}
-                      dangerouslySetInnerHTML={{ __html: highlight.value }}
-                    ></code>
-                  );
-                } catch (error) {
-                  return <code>{children}</code>;
-                }
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              code({ children }) {
+                return <CodeBlock value={children as string} />;
               },
               pre(props) {
-                try {
-                  const childClass: string =
-                    (props.children as any)?.props.className || "bash";
+                const childClass: string =
+                  (props.children as any)?.props.className || "bash";
+                const childText: string =
+                  (props.children as any)?.props.children || "";
 
-                  return (
-                    <div className="code-embed">
-                      <div className="used-language">
-                        <span>{childClass.replace(/language-/gi, "")}</span>
-                        <div className="tooltip">
-                          <div
-                            className="copy-btn"
-                            onClick={() =>
-                              copyToClipboard(
-                                (props.children as any)?.props.children
-                              )
-                            }
-                          >
-                            <ClipboardIcon />
-                          </div>
+                const handleClick = () => {
+                  copyToClipboard(childText);
+                };
+
+                return (
+                  <div className="code-embed">
+                    <div className="used-language">
+                      <span>{childClass.replace(/language-/gi, "")}</span>
+                      <div className="tooltip">
+                        <div className="copy-btn" onClick={handleClick}>
+                          <ClipboardIcon />
                         </div>
                       </div>
-                      <pre>{props.children}</pre>
                     </div>
-                  );
-                } catch (error) {
-                  return (
-                    <div className="code-embed">
-                      <div className="used-language">
-                        <span>bash</span>
-                        <div className="tooltip">
-                          <div
-                            className="copy-btn"
-                            onClick={() =>
-                              copyToClipboard(
-                                (props.children as any)?.props.children
-                              )
-                            }
-                          >
-                            <ClipboardIcon />
-                          </div>
-                        </div>
-                      </div>
-                      <pre>{props.children}</pre>
-                    </div>
-                  );
-                }
+                    <pre
+                      className={
+                        childClass.startsWith("language-")
+                          ? childClass
+                          : `language-${childClass}`
+                      }
+                    >
+                      {props.children}
+                    </pre>
+                  </div>
+                );
               },
             }}
           />
