@@ -114,6 +114,46 @@
   box-shadow: 0 0 15px 0 rgba(255, 255, 255, 0.15);
 }
 
+.img-container .skeleton {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: #333;
+}
+
+.img-container .skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    #555,
+    #555555aa 100%
+  );
+  animation: skeleton_loading .95s infinite;
+}
+
+@keyframes skeleton_loading {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: .6;
+  }
+  50% {
+    opacity: .4;
+  }
+  75% {
+    opacity: .6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .img-container .img-label {
   width: 100%;
   color: #f3f3f3;

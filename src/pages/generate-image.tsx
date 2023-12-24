@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { ImgModels, ImgResult, imgModels } from "../utils/types";
 import generateImage from "../utils/hf_img";
-import '../styles/image.css';
+import "../styles/image.css";
 
 type GeneratedImg = {
   censored: boolean;
@@ -73,7 +73,7 @@ export default function GenerateImage() {
         setResults,
         setResultsLoaded
       );
-      
+
       if (res.code != 200) {
         setErrorMessage(res.data.message ?? "");
       }
@@ -100,6 +100,17 @@ export default function GenerateImage() {
     return () => {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const SkeletonLoader = () => {
+    return resultsLoadCounter > -1
+      ? Array.from({ length: 4 - results.length }).map((_, i) => (
+          <div className="img-container" key={i}>
+            <div className="skeleton"></div>
+            <div className="img-label">{resultsLoadCounter} S</div>
+          </div>
+        ))
+      : null;
+  };
 
   return (
     <>
@@ -129,68 +140,80 @@ export default function GenerateImage() {
           </div>
           <form className="input-form" onSubmit={generate}>
             <label htmlFor="prompt"></label>
-            <input
-              type="text"
-              name="prompt"
-              id="prompt"
-              placeholder="Write prompt..."
-              onChange={(e) => setPrompt(e.target.value)}
-            />
             {resultsLoadCounter > -1 ? (
-              <button type="submit" disabled>
-                Loading
-              </button>
+              <>
+                <input
+                  type="text"
+                  name="prompt"
+                  id="prompt"
+                  placeholder="Write prompt..."
+                  onChange={(e) => setPrompt(e.target.value)}
+                  disabled
+                />
+                <button type="submit" disabled>
+                  Loading
+                </button>
+              </>
             ) : (
-              <button type="submit">Generate</button>
+              <>
+                <input
+                  type="text"
+                  name="prompt"
+                  id="prompt"
+                  placeholder="Write prompt..."
+                  onChange={(e) => setPrompt(e.target.value)}
+                />
+                <button type="submit">Generate</button>
+              </>
             )}
           </form>
         </div>
         <div className="img-results">
           {!resultsLoaded ? (
-            <div className="img-loading">
-              <div className="spinner"></div>
-              <p>{resultsLoadCounter} S</p>
-            </div>
+            <SkeletonLoader />
           ) : errorMessage.length > 1 ? (
             <p className="error-message">{errorMessage}</p>
           ) : (
-            results.map((el: GeneratedImg, i) => {
-              if (el == null) {
-                return (
-                  <div className="img-container" key={i}>
-                    <p className="img-label">SERVER ERROR</p>
-                  </div>
-                );
-              } else if (el.censored) {
-                return (
-                  <div className="img-container" key={i}>
-                    <p className="img-label">CENSORED</p>
-                  </div>
-                );
-              }
+            <>
+              {results.map((el: GeneratedImg, i) => {
+                if (el == null) {
+                  return (
+                    <div className="img-container" key={i}>
+                      <p className="img-label">SERVER ERROR</p>
+                    </div>
+                  );
+                } else if (el.censored) {
+                  return (
+                    <div className="img-container" key={i}>
+                      <p className="img-label">CENSORED</p>
+                    </div>
+                  );
+                }
 
-              return (
-                <div className="img-container" key={i}>
-                  <img
-                    src={el.img}
-                    alt={`${prompt} [${i + 1}]`}
-                    loading="lazy"
-                  />
-                  <div className="img-tooltip">
-                    <svg
-                      onClick={() => downloadImg(el.img)}
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="currentColor"
-                      className="download-img-btn"
-                      viewBox="0 0 16 16"
-                    >
-                      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
-                    </svg>
+                return (
+                  <div className="img-container" key={i}>
+                    <img
+                      src={el.img}
+                      alt={`${prompt} [${i + 1}]`}
+                      loading="lazy"
+                    />
+                    <div className="img-tooltip">
+                      <svg
+                        onClick={() => downloadImg(el.img)}
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        className="download-img-btn"
+                        viewBox="0 0 16 16"
+                      >
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+              <SkeletonLoader />
+            </>
           )}
         </div>
       </main>
