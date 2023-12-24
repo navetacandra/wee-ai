@@ -4,6 +4,7 @@ import Chat from "./pages/chat";
 import { useEffect } from "react";
 import DevtoolAlert from "./pages/devtool-alert";
 import NotFoundAlert from "./pages/404";
+import Home from "./pages/home";
 
 export default function App() {
   useEffect(() => {
@@ -13,11 +14,11 @@ export default function App() {
       if (!disableDevtool.includes(currentPath)) {
         return;
       }
-      
+
       const time = Date.now();
       (() => {
-          // eslint-disable-next-line no-debugger
-          debugger;
+        // eslint-disable-next-line no-debugger
+        debugger;
       })();
       if (Date.now() - time > 50) {
         window.location.href = `/devtool?back=${currentPath}`;
@@ -33,7 +34,7 @@ export default function App() {
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<></>} />
+          <Route path="/" element={<Home />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/image" element={<GenerateImage />} />
           <Route path="/devtool" element={<DevtoolAlert />} />

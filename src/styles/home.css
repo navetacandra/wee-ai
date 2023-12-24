@@ -1,0 +1,78 @@
+.landing-page {
+  text-align: center;
+  padding-top: 5rem;
+}
+
+.landing-page h1 {
+  font-size: 3rem;
+  letter-spacing: 0.1rem;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+.landing-page p {
+  width: 65%;
+  font-size: 1.15rem;
+  margin: 0.5rem auto;
+}
+
+.landing-page p a {
+    color: #ccc;
+    text-underline-offset: 0rem;
+    transition: all ease 0.5s;
+}
+
+.landing-page p a:hover,
+.landing-page p a:focus {
+    letter-spacing: .05rem;
+    text-underline-offset: 0.25rem;
+}
+
+.landing-page h2 {
+  font-weight: 500;
+  margin: 2rem auto;
+}
+
+.ai-menus {
+  width: 60%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+  flex-direction: row;
+}
+
+.ai-menus a {
+  display: block;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  width: 45%;
+  text-decoration: none;
+  color: #f1f1f1;
+  border: 1px solid #f1f1f1;
+  border-radius: 8px;
+  transition: all ease 0.5s;
+}
+
+.ai-menus a:hover,
+.ai-menus a:focus {
+  background: #f1f1f1;
+  color: #212121;
+  letter-spacing: 0.1rem;
+}
+
+@media screen and (max-width: 768px) {
+  .landing-page p {
+    width: 90%;
+    font-size: 1.075rem;
+  }
+
+  .ai-menus {
+    width: 80%;
+    flex-direction: column;
+  }
+
+  .ai-menus a {
+    width: 75%;
+    margin: 1rem auto;
+  }
+}
