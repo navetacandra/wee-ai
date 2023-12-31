@@ -8,7 +8,18 @@ type GIMGProps = {
 };
 const censoredContent = "iiigAooooAKKKKAC".repeat(339);
 
-async function generate(prompt: string, model: ImgModels) {
+function convertBlobToBase64(blob: Blob) {
+  return new Promise<string>((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(reader.result as string);
+    };
+
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function generate(prompt: string, model: ImgModels) {
   try {
     const data = {
       headers: {
@@ -31,22 +42,37 @@ async function generate(prompt: string, model: ImgModels) {
     };
     const url = `https://api-inference.huggingface.co/models/${model}`;
     const fetchResult = await fetch(url, data);
-    const arrayBuffer = await fetchResult.arrayBuffer();
-    const b64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-    if (b64.startsWith("eyJ")) {
-      return await generate(prompt, model);
+    const blob = await fetchResult.blob();
+
+    if (blob.type === "application/json") {
+      return {
+        model,
+        prompt: prompt ?? "",
+        img: null,
+        censored: false,
+        regenerating: false,
+      };
     }
-    const imgRes = `data:image/jpeg;base64,${b64}`;
+
+    const imgRes = URL.createObjectURL(blob);
     const _res: ImgResult = {
+      model,
       prompt: prompt ?? "",
-      model: model,
       img: imgRes,
-      censored: imgRes.includes(censoredContent),
+      censored: (await convertBlobToBase64(blob)).includes(censoredContent),
+      regenerating: false,
     } as ImgResult;
 
     return _res;
   } catch (err) {
-    return await generate(prompt, model);
+    console.log(`Error generate: ${err}`);
+    return {
+      model,
+      prompt: prompt ?? "",
+      img: null,
+      censored: false,
+      regenerating: false,
+    };
   }
 }
 
@@ -116,10 +142,9 @@ export default async function generateImage(
     Array(amount)
       .fill(0)
       .map(async () => {
+        const usedModel: string =
+          model || imgModels[Math.floor(Math.random() * imgModels.length)];
         try {
-          const usedModel: string =
-            model || imgModels[Math.floor(Math.random() * imgModels.length)];
-
           const _res: ImgResult = await generate(
             props.prompt ?? "",
             usedModel as ImgModels
@@ -127,8 +152,24 @@ export default async function generateImage(
           setResults([...results, _res]);
           results.push(_res);
         } catch (err) {
-          setResults([...results, null]);
-          results.push(null);
+          console.log(err);
+          setResults([
+            ...results,
+            {
+              prompt: props.prompt ?? "",
+              model: usedModel as ImgModels,
+              img: null,
+              censored: false,
+              regenerating: false,
+            },
+          ]);
+          results.push({
+            prompt: props.prompt ?? "",
+            model: usedModel as ImgModels,
+            img: null,
+            censored: false,
+            regenerating: false,
+          });
         } finally {
           setResultsLoaded(true);
         }

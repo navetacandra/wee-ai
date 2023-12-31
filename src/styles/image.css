@@ -114,6 +114,14 @@
   box-shadow: 0 0 15px 0 rgba(255, 255, 255, 0.15);
 }
 
+.img-container.server-error {
+  cursor: pointer;
+}
+
+.server-error .img-tooltip {
+  display: flex;
+}
+
 .img-container .skeleton {
   width: 100%;
   height: 100%;

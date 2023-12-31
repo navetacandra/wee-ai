@@ -35,6 +35,7 @@ export type ImgModels = (typeof _imgModels)[number];
 export type ImgResult = {
   prompt: string;
   model: ImgModels;
-  img: string;
+  img: string | null;
   censored: boolean;
-} | null;
+  regenerating: boolean;
+};

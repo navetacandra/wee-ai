@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { ImgModels, ImgResult, imgModels } from "../utils/types";
-import generateImage from "../utils/hf_img";
+import generateImage, { generate as generate_core } from "../utils/hf_img";
 import "../styles/image.css";
 
-type GeneratedImg = {
-  censored: boolean;
-  model: string;
-  img: string;
-} | null;
+// type GeneratedImg = {
+//   censored: boolean;
+//   model: string;
+//   img: string | null;
+//   regenerating: boolean;
+// } | null;
 
 export default function GenerateImage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -57,11 +58,9 @@ export default function GenerateImage() {
       setResults([]);
       setResultsLoaded(false);
 
-      let i = 0;
       setResultsLoadCounter(0);
       intvl = setInterval(() => {
-        i += 1;
-        setResultsLoadCounter(i);
+        setResultsLoadCounter((prev) => (prev += 1));
       }, 1000);
 
       const res = await generateImage(
@@ -81,6 +80,44 @@ export default function GenerateImage() {
       setErrorMessage(`Error: ${err}`);
     } finally {
       setResultsLoaded(true);
+      clearInterval(intvl);
+      setResultsLoadCounter(-1);
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async function regenerate(prompt: string, model: ImgModels, index: number) {
+    if (resultsLoadCounter > -1) return;
+    let intvl;
+
+    try {
+      setResults((prev) =>
+        prev.map((el, i) => {
+          if (i == index) el.regenerating = true;
+          return el;
+        })
+      );
+      setResultsLoadCounter(0);
+      intvl = setInterval(() => {
+        setResultsLoadCounter((prev) => (prev += 1));
+      }, 1000);
+
+      const res = await generate_core(prompt, model);
+      setResults((prev) =>
+        prev.map((el, i) => {
+          if (i == index) return res;
+          return el;
+        })
+      );
+    } catch (err) {
+      console.log(`Error: ${err}`);
+    } finally {
+      setResults((prev) =>
+        prev.map((el, i) => {
+          if (i == index) el.regenerating = false;
+          return el;
+        })
+      );
       clearInterval(intvl);
       setResultsLoadCounter(-1);
     }
@@ -175,17 +212,54 @@ export default function GenerateImage() {
             <p className="error-message">{errorMessage}</p>
           ) : (
             <>
-              {results.map((el: GeneratedImg, i) => {
-                if (el == null) {
+              {results.map((el: ImgResult, i) => {
+                if (el.regenerating) {
                   return (
                     <div className="img-container" key={i}>
+                      <div className="skeleton"></div>
+                      <div className="img-label">{resultsLoadCounter} S</div>
+                    </div>
+                  );
+                }
+
+                if (el == null || el.img == null) {
+                  return (
+                    <div className="img-container server-error" key={i}>
                       <p className="img-label">SERVER ERROR</p>
+                      <div className="img-tooltip">
+                        <svg
+                          onClick={() => regenerate(el.prompt, el.model, i)}
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="currentColor"
+                          viewBox="0 0 16 16"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"
+                          />
+                          <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
+                        </svg>
+                      </div>
                     </div>
                   );
                 } else if (el.censored) {
                   return (
                     <div className="img-container" key={i}>
                       <p className="img-label">CENSORED</p>
+                      <div className="img-tooltip">
+                        <svg
+                          onClick={() => regenerate(el.prompt, el.model, i)}
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="currentColor"
+                          viewBox="0 0 16 16"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"
+                          />
+                          <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
+                        </svg>
+                      </div>
                     </div>
                   );
                 }
@@ -199,7 +273,19 @@ export default function GenerateImage() {
                     />
                     <div className="img-tooltip">
                       <svg
-                        onClick={() => downloadImg(el.img)}
+                        onClick={() => regenerate(el.prompt, el.model, i)}
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"
+                        />
+                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
+                      </svg>
+                      <svg
+                        onClick={() => downloadImg(el.img ?? "")}
                         xmlns="http://www.w3.org/2000/svg"
                         fill="currentColor"
                         className="download-img-btn"
